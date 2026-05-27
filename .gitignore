@@ -32,6 +32,7 @@ yarn-error.log*
 
 # env files (contain secrets — never commit)
 .env*
+!.env.example
 
 # SQLite database files
 *.db
