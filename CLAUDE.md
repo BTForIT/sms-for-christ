@@ -12,15 +12,20 @@ AI-powered Safety Management System (SMS) for aviation operators. Users describe
 npm run dev             # Dev server → http://localhost:3000
 npm run build           # Production build
 npm run lint            # Lint check
+npm run mcp             # Run MCP server (stdio, for Claude Code)
 npx prisma migrate dev  # Run DB migrations
 npx prisma studio       # Visual DB browser
 ```
 
-**Environment:** Copy `.env.local` and set `ANTHROPIC_API_KEY` and `DATABASE_URL` before first run.
+**Environment:** Copy `.env.example` to `.env.local` and set variables before first run.
 
 ## Stack
 
 Next.js 14 (App Router) · TypeScript · Tailwind CSS · Prisma ORM · Claude API (`@anthropic-ai/sdk`) · SQLite (dev) / PostgreSQL (prod) · Vercel
+
+**Extended stack:**
+- `@modelcontextprotocol/sdk` — MCP server exposes SMS tools to Claude Code and AI assistants
+- `@microsoft/microsoft-graph-client` + `@azure/identity` — Microsoft 365 / Graph API for Teams notifications and SharePoint archival
 
 ## Architecture
 
@@ -28,7 +33,11 @@ Next.js 14 (App Router) · TypeScript · Tailwind CSS · Prisma ORM · Claude AP
 /src/app/           Pages and layouts (App Router)
 /src/components/    UI components
 /src/lib/ai.ts      ALL Claude API calls — centralised here
-/src/lib/db.ts      Prisma client singleton
+/src/lib/db.ts      Prisma client singleton (Next.js)
+/src/lib/m365.ts    Microsoft 365 integration — Teams webhook + Graph API
+/mcp/server.ts      MCP server entry point (runs via tsx, reads same SQLite DB)
+/mcp/tools/         MCP tool implementations
+/mcp/lib/db.ts      Prisma client for MCP context (relative imports, no @/ alias)
 /prisma/            schema.prisma + migrations
 ```
 
@@ -64,6 +73,40 @@ Next.js 14 (App Router) · TypeScript · Tailwind CSS · Prisma ORM · Claude AP
 ## Database Models (Prisma)
 
 Key fields on `Report`: `rawText`, `category` (enum), `severity` (Negligible→Catastrophic), `likelihood` (ExtremellyImprobable→Frequent), `status`, `aiAnalysis` (JSON), `isAnonymous`.
+
+## MCP Server
+
+The MCP server (`/mcp/server.ts`) exposes four tools to Claude Code and MCP clients:
+
+| Tool | Description |
+|---|---|
+| `list_reports` | List reports with filters (category, severity, status, limit) |
+| `get_report` | Full report + diagnosis + corrective actions by ID |
+| `get_risk_summary` | Dashboard KPIs grouped by risk level and status |
+| `get_insights` | AI trend analysis (calls Claude internally) |
+
+**Configure in Claude Code** (`~/.claude/settings.json`):
+```json
+{
+  "mcpServers": {
+    "sms-aviation": {
+      "command": "npm",
+      "args": ["run", "mcp"],
+      "cwd": "/path/to/sms-for-chris-t"
+    }
+  }
+}
+```
+
+## Microsoft 365 Integration
+
+`/src/lib/m365.ts` provides three functions:
+
+- **`notifyTeamsHighRisk(report)`** — posts an Adaptive Card to a Teams channel via Incoming Webhook when a report's risk level is `high` or `critical`. Called automatically in `POST /api/reports` (confirm step). Requires `TEAMS_WEBHOOK_URL`.
+- **`sendTeamsChannelMessage(report)`** — same but via Graph API. Requires Azure app registration + `TEAMS_TEAM_ID` / `TEAMS_CHANNEL_ID`.
+- **`archiveReportToSharePoint(report)`** — uploads the full report JSON to a SharePoint document library. Requires `SHAREPOINT_SITE_ID` / `SHAREPOINT_DRIVE_ID`.
+
+All M365 functions are **no-ops if the env vars are not set** — the app runs fine without them.
 
 ## ForIT Integration (Week 4)
 

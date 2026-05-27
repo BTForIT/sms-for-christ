@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
 import { extractReport } from "@/lib/ai";
+import { notifyTeamsHighRisk } from "@/lib/m365";
 import type { Category, Severity, Likelihood } from "@/generated/prisma/client";
 
 // POST /api/reports
@@ -46,6 +47,10 @@ export async function POST(req: NextRequest) {
         aiAnalysis: JSON.stringify({}),
       },
     });
+
+    // Fire-and-forget Teams notification for high / critical reports
+    notifyTeamsHighRisk(report).catch(() => undefined);
+
     return NextResponse.json({ report }, { status: 201 });
   }
 
