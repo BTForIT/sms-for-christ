@@ -464,6 +464,7 @@ export type CorrectiveActionCreateOrConnectWithoutDiagnosisInput = {
 
 export type CorrectiveActionCreateManyDiagnosisInputEnvelope = {
   data: Prisma.CorrectiveActionCreateManyDiagnosisInput | Prisma.CorrectiveActionCreateManyDiagnosisInput[]
+  skipDuplicates?: boolean
 }
 
 export type CorrectiveActionUpsertWithWhereUniqueWithoutDiagnosisInput = {
@@ -1276,6 +1277,7 @@ export type CorrectiveActionCreateManyArgs<ExtArgs extends runtime.Types.Extensi
    * The data used to create many CorrectiveActions.
    */
   data: Prisma.CorrectiveActionCreateManyInput | Prisma.CorrectiveActionCreateManyInput[]
+  skipDuplicates?: boolean
 }
 
 /**
@@ -1294,6 +1296,7 @@ export type CorrectiveActionCreateManyAndReturnArgs<ExtArgs extends runtime.Type
    * The data used to create many CorrectiveActions.
    */
   data: Prisma.CorrectiveActionCreateManyInput | Prisma.CorrectiveActionCreateManyInput[]
+  skipDuplicates?: boolean
   /**
    * Choose, which related nodes to fetch as well
    */

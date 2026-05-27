@@ -1259,6 +1259,7 @@ export type DiagnosisCreateManyArgs<ExtArgs extends runtime.Types.Extensions.Int
    * The data used to create many Diagnoses.
    */
   data: Prisma.DiagnosisCreateManyInput | Prisma.DiagnosisCreateManyInput[]
+  skipDuplicates?: boolean
 }
 
 /**
@@ -1277,6 +1278,7 @@ export type DiagnosisCreateManyAndReturnArgs<ExtArgs extends runtime.Types.Exten
    * The data used to create many Diagnoses.
    */
   data: Prisma.DiagnosisCreateManyInput | Prisma.DiagnosisCreateManyInput[]
+  skipDuplicates?: boolean
   /**
    * Choose, which related nodes to fetch as well
    */
